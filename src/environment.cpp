@@ -28,15 +28,66 @@
  * along with libcppa. If not, see <http://www.gnu.org/licenses/>.            *
 \******************************************************************************/
 
-
+#include "mas/mas.hpp"
 #include "mas/environment.hpp"
+
+#include "cppa/opt.hpp"
+
+using namespace std;
+using namespace cppa;
 
 void environment::init() {
     become (
+        on(atom("quit")) >> [=] {
+            quit();
+        },
         others() >> [=]() {
             aout << "[ENV] Unexpected message: '"
                  << to_string(last_dequeued()) << "'.\n";
         }
     );
+}
+
+int main(int argc, char* argv[]) {
+
+
+    uint16_t port{20283};
+    options_description desc;
+    bool args_valid = match_stream<string>(argv + 1, argv + argc) (
+        on_opt1('P', "port", &desc, "set port (default:20283)") >> rd_arg(port),
+        on_opt0('h', "help", &desc, "print help") >> print_desc_and_exit(&desc)
+    );
+    if (!args_valid) print_desc_and_exit(&desc)();
+
+    auto env = spawn<environment>();
+
+    try {
+        publish(env, port);
+    } catch(bind_failure&) {
+        cout << "problem binding server to port: " << port << "'." << endl;
+    }
+
+    for (bool done{false}; !done;){
+        string input;
+        getline(cin, input);
+        if (input.size() > 0) {
+            input.erase(input.begin());
+            vector<string> values{split(input, ' ')};
+            match (values) (
+                on("quit") >> [&] {
+                    done = true;
+                },
+                others() >> [&] {
+                    aout << "available commands:\n - /quit\n";
+                }
+            );
+        }
+    };
+    send(env, atom("quit"));
+
+    await_all_others_done();
+    shutdown();
+
+    return EXIT_SUCCESS;
 }
 

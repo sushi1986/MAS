@@ -8,6 +8,8 @@ set(MAS_VERSION_PATCH 0)
 # qt variables
 set( MAS_SRCS 
      ./src/mas.cpp
+     ./src/agent.cpp
+     ./src/environment.cpp
     )
 set(MAS_HDRS)
 
@@ -94,4 +96,5 @@ macro(add_exec name)
     add_dependencies(${name} all_examples)
 endmacro()
 
-add_exec(mas)
+add_exec(agent)
+add_exec(environment)
