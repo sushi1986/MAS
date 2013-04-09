@@ -1,2 +1,6 @@
 mas/mas.hpp
 src/mas.cpp
+mas/environment.hpp
+src/environment.cpp
+mas/agent.hpp
+src/agent.cpp
