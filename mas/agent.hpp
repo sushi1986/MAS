@@ -7,13 +7,13 @@
 class agent : public cppa::event_based_actor {
  public:
 
-    agent(cppa::actor_ptr env, uint32_t speed);
+    agent(cppa::actor_ptr env);
 
     void init();
 
  private:
 
-    uint32_t m_speed;
+    // uint32_t m_speed;
     cppa::actor_ptr m_env;
 };
 
