@@ -6,7 +6,7 @@ set(MAS_VERSION_MINOR 1)
 set(MAS_VERSION_PATCH 0)
 
 # qt variables
-set( MAS_SRCS 
+set( MAS_SRCS
      ./src/mas.cpp
      ./src/agent.cpp
      ./src/environment.cpp
@@ -86,7 +86,7 @@ endif ()
 find_package(LibCPPA REQUIRED)
 
 # we need this to be able to include headers produced by uic in our code
-# (CMAKE_BINARY_DIR holds a path to the build directory, while INCLUDE_DIRECTORIES() works just like INCLUDEPATH 
+# (CMAKE_BINARY_DIR holds a path to the build directory, while INCLUDE_DIRECTORIES() works just like INCLUDEPATH
 # from qmake)
 INCLUDE_DIRECTORIES(. hdr ${CMAKE_BINARY_DIR} ${CPPA_INCLUDE} ${Boost_INCLUDE_DIRS} ${OPENCL_INCLUDE_DIRS})
 
@@ -96,5 +96,4 @@ macro(add_exec name)
     add_dependencies(${name} all_examples)
 endmacro()
 
-add_exec(agent)
-add_exec(environment)
+add_exec(mas ${MAS_SRCS})

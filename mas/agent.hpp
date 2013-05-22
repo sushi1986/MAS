@@ -13,7 +13,8 @@ class agent : public cppa::event_based_actor {
 
  private:
 
-    // uint32_t m_speed;
+    uint32_t m_id;
+    uint32_t m_speed;
     cppa::actor_ptr m_env;
 };
 

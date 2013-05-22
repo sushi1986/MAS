@@ -1,64 +1,67 @@
-
 #ifndef FIELD_HPP
 #define FIELD_HPP
 
 #include <vector>
+#include <cstdlib>
 #include <cassert>
 #include <sstream>
+#include <iostream>
 #include <algorithm>
-
-namespace {
-    constexpr const size_t length   = 10;
-    constexpr const size_t lanes    =  1;
-}
 
 /*
  * describes the environment, has two derived classes
  * - field: the complete type for the environment
- * - sect: a section sent to each agent
+ * - sectn: a section sent to each agent
  * each position consists of a tuple of two unsinged values
  * - first: the id of the current agent (ids should be > 0)
  * - second: the agents speed
  * (0/0) is in the top left corner
  */
-template<size_t Columns, size_t Rows>
-class base {
+template<uint32_t Columns, uint32_t Rows>
+class field {
 
-    using speed = unsigned;
-    using id = unsigned;
-    using is_vec = std::vector<std::pair<id,speed>>;
+    using speed = uint32_t;
+    using id = uint32_t;
+    using elem = std::pair<id,speed>;
+    using is_vec = std::vector<elem>;
 
  public:
 
     static constexpr size_t num_elements = Rows * Columns;
 
-    base(base&&) = default;
-    base(const base&) = default;
-    base& operator=(base&&) = default;
-    base& operator=(const base&) = default;
+    field(field&&) = default;
+    field(const field&) = default;
+    field& operator=(field&&) = default;
+    field& operator=(const field&) = default;
 
-    base() : m_data(num_elements) {
+    field() : m_data(num_elements) {
         std::fill(std::begin(m_data), std::end(m_data), std::make_pair(0,0));
     }
 
-    explicit base(is_vec d) : m_data(std::move(d)) {
+    explicit field(is_vec d) : m_data(std::move(d)) {
         assert(m_data.size() == num_elements);
     }
 
-    inline float& operator()(size_t column, size_t row) {
+    inline elem& operator()(uint32_t column, uint32_t row) {
         return m_data[row * Columns + column];
     }
 
-    inline const float& operator()(size_t column, size_t row) const {
+    inline const elem& operator()(uint32_t column, uint32_t row) const {
         return m_data[row * Columns + column];
     }
 
-    inline float& operator()(std::pair<size_t,size_t> coord) {
+    inline elem& operator()(std::pair<uint32_t,uint32_t> coord) {
         return m_data[coord.second * Columns + coord.first];
     }
 
-    inline const float& operator()(std::pair<size_t,size_t> coord) const {
+    inline const elem& operator()(std::pair<uint32_t,uint32_t> coord) const {
         return m_data[coord.second * Columns + coord.first];
+    }
+
+    template<uint32_t C, uint32_t R>
+    field<C, R> get_section(uint32_t from, uint32_t to) {
+        assert((to - from) + 1 == C);
+        return get_section_impl<C, R>(from, to, 0, Rows - 1);
     }
 
     typedef typename is_vec::const_iterator const_iterator;
@@ -71,87 +74,50 @@ class base {
 
     const is_vec& data() const { return m_data; }
 
+    void data(is_vec d) { m_data = std::move(d); }
+
  private:
+
+    template<uint32_t C, uint32_t R>
+    field<C,R> get_section_impl(uint32_t from, uint32_t to, uint32_t upper, uint32_t lower) {
+        assert(C == to - from + 1 && R == lower - upper + 1);
+        is_vec new_field(C * R);
+        for (uint32_t i = 0; i < R; ++i) {
+            std::copy(this->begin() + (from + i * Columns),
+                      this->begin() + (to + i * Columns) + 1,
+                      std::begin(new_field) + (i * C));
+        }
+        return field<C, R>{std::move(new_field)};
+    }
 
     is_vec m_data;
 
 };
 
-template<size_t Columns, size_t Rows>
-inline bool operator==(const base<Columns, Rows>& lhs,
-                       const base<Columns, Rows>& rhs) {
+template<uint32_t Columns, uint32_t Rows>
+inline bool operator==(const field<Columns, Rows>& lhs,
+                       const field<Columns, Rows>& rhs) {
     return equal(lhs.begin(), lhs.end(), rhs.begin());
 }
 
-template<size_t Columns, size_t Rows>
-inline bool operator!=(const base<Columns, Rows>& lhs,
-                       const base<Columns, Rows>& rhs) {
+template<uint32_t Columns, uint32_t Rows>
+inline bool operator!=(const field<Columns, Rows>& lhs,
+                       const field<Columns, Rows>& rhs) {
     return !(lhs == rhs);
 }
 
-template<size_t Columns, size_t Rows>
-std::string to_string(const base<Columns,Rows>& f) {
+template<uint32_t Columns, uint32_t Rows>
+std::string to_string(const field<Columns,Rows>& b) {
     std::ostringstream oss;
     oss.fill(' ');
-    for (size_t row = 0; row < Rows; ++row) {
-        for (size_t column = 0; column < Columns; ++column) {
-            oss << f(column, row);
+    for (uint32_t row = 0; row < Rows; ++row) {
+        for (uint32_t column = 0; column < Columns; ++column) {
+            auto tmp = b(column, row);
+            oss << "(" << tmp.first << "/" << tmp.second << ")";
         }
         oss << '\n';
     }
     return oss.str();
 }
-
-template<size_t Columns, size_t Rows>
-class sect : public base<Columns,Rows> {
-
-    using speed = unsigned;
-    using id = unsigned;
-    using is_vec = std::vector<std::pair<id,speed>>;
-
- public:
-
-
- private:
-
-
-};
-
-template<size_t Columns, size_t Rows>
-class field : public base<Columns,Rows> {
-
-    using speed = unsigned;
-    using id = unsigned;
-    using is_vec = std::vector<std::pair<id,speed>>;
-
- public:
-
-    template<size_t C, size_t R>
-    sect<C, R> get_section(size_t lane, size_t from, size_t to) {
-        assert(to - from == R);
-        size_t upper = lane == 0 ? 0 : lane - 1;
-        size_t lower = lane >= lanes - 1 ? lane : lane + 1;
-        assert(upper - lower == C);
-        return get_section_impl<C, R>(from, upper, to, lower);
-    }
-
- private:
-
-    template<size_t C, size_t R>
-    base<C,R> get_section_impl(size_t from, size_t upper, size_t to, size_t lower) {
-        assert(from < C && to < C && upper < R && lower < R);
-        assert(C == to - from && R == lower - upper);
-        is_vec new_base(C * R);
-        for (size_t i = 0; i < R; ++i) {
-            std::copy(this->begin() + (from + i * C),
-                      this->begin() + (to + i * C),
-                      std::begin(new_base) + (i * C));
-        }
-        return sect<C, R>(std::move(new_base));
-    }
-};
-
-
-using field_type = field<length,lanes>;
 
 #endif // FIELD_HPP

@@ -11,15 +11,26 @@ using namespace std;
 using namespace cppa;
 
 
-agent::agent(cppa::actor_ptr env): m_env(env) { }
+agent::agent(cppa::actor_ptr env): m_speed(1), m_env(env) { }
 
 void agent::init() {
     send(m_env, atom("register"));
     become(
-        on(atom("ack"), atom("register")) >> [=] {
-            cout << "Registered in environment." << endl;
+        on(atom("spawn"), arg_match) >> [=] (const sectn_type& section,
+                                             uint32_t lane, ident_type id) {
+            m_id = id;
+            cout << "Received spawn with id: " << id
+                 << " and lane: " << lane
+                 << endl;
+             if (section(uint32_t(0), lane).first == 0) {
+                reply(atom("conquor"), m_id, m_speed, make_pair(uint32_t(0),lane));
+             }
+            // has no position on the field yet
+            // start depending on speed
         },
-        on(atom("drive"), arg_match) >> [=] (/*const section_type& section*/) {
+        on(atom("drive"), arg_match) >> [=] (const sectn_type& /*section*/,
+                                             coord_type /*pos*/) {
+            cout << "Received drive." << endl;
             // calculate action
             // answer to server
         },

@@ -3,9 +3,10 @@
 #include <sstream>
 #include <iostream>
 
-#include "cppa/opt.hpp"
-#include "cppa/cppa.hpp"
+#include <cppa/opt.hpp>
+#include <cppa/cppa.hpp>
 
+#include "mas/mas.hpp"
 #include "mas/agent.hpp"
 #include "mas/environment.hpp"
 
@@ -21,7 +22,13 @@ inline std::vector<std::string> split(const std::string& str, char delim) {
 }
 
 auto main (int argc, char** argv) -> int {
-    // announce stuff
+
+    sectn_getter g = &sectn_type::data;
+    sectn_setter s = &sectn_type::data;
+    announce<sectn_type>(make_pair(g, s));
+    announce<pair<uint32_t,uint32_t>>(&pair<uint32_t,uint32_t>::first,
+                                      &pair<uint32_t,uint32_t>::second);
+    // announce<coord_type>(&coord_type::first, &coord_type::second);
 
     uint16_t port{20283};
     bool is_environment{false};
@@ -34,7 +41,7 @@ auto main (int argc, char** argv) -> int {
         on_opt0('e', "environment", &desc, "start an environment",        "general") >> set_flag(is_environment),
         on_opt1('P', "port",        &desc, "set port (default:20283)",    "general") >> rd_arg(port),
         on_opt0('h', "help",        &desc, "print help",                  "general") >> print_desc_and_exit(&desc),
-        on_opt1('h', "host",        &desc, "set server host",             "agent"  ) >> rd_arg(host),
+        on_opt1('H', "host",        &desc, "set server host",             "agent"  ) >> rd_arg(host),
         on_opt1('a', "agents",      &desc, "number of agents (default:1", "agent"  ) >> rd_arg(number_of_agents)
     );
     if (!args_valid) print_desc_and_exit(&desc)();
@@ -105,5 +112,6 @@ auto main (int argc, char** argv) -> int {
 
     await_all_others_done();
     shutdown();
+
     return EXIT_SUCCESS;
 }
