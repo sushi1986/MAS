@@ -76,10 +76,35 @@ class field {
 
     void data(is_vec d) { m_data = std::move(d); }
 
+    void clear() {
+        std::fill(std::begin(m_data), std::end(m_data), std::make_pair(0,0));
+    }
+
+    void mark_unavailable(std::pair<uint32_t,uint32_t> coord) {
+        for (uint32_t r = Rows; r > 0 ; --r) {
+            for (uint32_t c = Columns; c > 0; --c) {
+                auto x = c - 1; // can't check if >= 0 (always true)
+                auto y = r - 1; // therefor have to correct by 1
+                if (y != coord.second && x != coord.first) {
+                    handle_position(x,y);
+                }
+            }
+        }
+    }
+
+    uint32_t rows() {
+        return Rows;
+    }
+
+    uint32_t cols() {
+        return Columns;
+    }
+
  private:
 
     template<uint32_t C, uint32_t R>
-    field<C,R> get_section_impl(uint32_t from, uint32_t to, uint32_t upper, uint32_t lower) {
+    field<C,R> get_section_impl(uint32_t from,  uint32_t to,
+                                uint32_t upper, uint32_t lower) {
         assert(C == to - from + 1 && R == lower - upper + 1);
         is_vec new_field(C * R);
         for (uint32_t i = 0; i < R; ++i) {
@@ -88,6 +113,18 @@ class field {
                       std::begin(new_field) + (i * C));
         }
         return field<C, R>{std::move(new_field)};
+    }
+
+    void handle_position(uint32_t col, uint32_t row) {
+        auto t = (*this)(col, row);
+        if (t.first != 0) {
+            auto speed = t.second;
+            for (uint32_t i = 0; i <= speed; ++i) {
+                if (col+i < Columns) {
+                    (*this)(col+i, row) = t;
+                }
+            }
+        }
     }
 
     is_vec m_data;

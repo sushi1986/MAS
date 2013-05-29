@@ -5,16 +5,18 @@
 #include "cppa/cppa.hpp"
 
 class agent : public cppa::event_based_actor {
+//class agent : public cppa::sb_actor<agent> {
  public:
 
-    agent(cppa::actor_ptr env);
+    agent(cppa::actor_ptr env, uint32_t max_speed);
 
     void init();
 
  private:
 
     uint32_t m_id;
-    uint32_t m_speed;
+    uint32_t m_max_speed;
+    uint32_t m_pref_speed;
     cppa::actor_ptr m_env;
 };
 
