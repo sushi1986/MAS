@@ -5,18 +5,17 @@
 
 namespace {
 
-    // first id is 1
-    // 0 -> no agent
-    constexpr const uint32_t first_id  = 1;
+    constexpr const uint32_t first_id  = 1; // first id is 1; 0 -> no agent
 
-    // 1 unit ~30 km/h --> 4 = 120 km/h
-    constexpr const uint32_t max_speed = 4;
+    constexpr const uint32_t max_accel = 1; // 1: ~ 30 km/h
+    constexpr const uint32_t max_decel = 2; // 2: ~ 60 km/h
+    constexpr const uint32_t max_speed = 5; // 5: ~150 km/h
+
     constexpr const uint32_t zone_len  = max_speed;
+    constexpr const uint32_t field_len = 3 * zone_len; // >= 3 * max_speed
+    constexpr const uint32_t sectn_len = 3 * zone_len; // >= 3 * max_speed
 
-    // should be greater then 3 * max_speed
-    constexpr const uint32_t field_len = 3 * zone_len;
-    constexpr const uint32_t sectn_len = 3 * zone_len;
-    constexpr const uint32_t lanes     = 3;
+    constexpr const uint32_t lanes = 3; // >= 1
 
     using field_type = field<field_len,lanes>;
     using sectn_type = field<sectn_len,lanes>;

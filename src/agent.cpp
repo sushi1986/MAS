@@ -9,8 +9,12 @@ using namespace std;
 using namespace cppa;
 
 
-agent::agent(cppa::actor_ptr env, uint32_t max_speed)
-    : m_max_speed(max_speed), m_env(env)
+agent::agent(cppa::actor_ptr env, uint32_t max_speed,
+             uint32_t max_accel, uint32_t max_decel)
+    : m_max_speed(max_speed)
+    , m_max_accel(max_accel)
+    , m_max_decel(max_decel)
+    , m_env(env)
 {
     srand(time(0));
     m_pref_speed = rand() % (m_max_speed + 1);
@@ -39,48 +43,28 @@ void agent::init() {
             auto speed = section(pos.first, pos.second).second;
             auto x = pos.first;
             auto y = pos.second;
-            section.mark_unavailable(pos);
-            uint32_t new_x = x;
-            uint32_t new_y = y;
-            auto lanes = section.rows();
-            auto range = max_speed / (lanes * 0.0);
-            // see if you want to switch to a faster / slower lane
-            if (range * (y + 1) > speed) {
-                new_y += 1;
-            }
-            else if (range * y < speed) {
-                new_y -= 1;
-            }
-            // if you do not want to switch perhaps there is someone
-            // slower in fornt of you or you are slowing down someone
-            // behind you
-            if (new_y == y) {
-                if (y < lanes) { // can still go up and drive faster
-                    for (uint32_t i = x+1; x < section.cols(); ++i) {
-                        if (section(i,y).second < speed) {
-                            new_y += 1;
-                        }
-                    }
-                }
-                else {
-                    // you are slowing someone down -> go down
-                }
-            }
-            // if stay and slower car in front of you
-            // if up possibile -> up
-            // else if down possibile -> down
-            // else stay
-            // make a move
+//            section.mark_unavailable(pos);
+            uint32_t acceleration = 0;
+//            auto lanes = section.rows();
+
+            // change lane if your speed maximum increses
+            // otherwise drive to the "left" lane
+
+            // find possibile positions and mark the maximum speed in each
+            section.mark_available(pos, speed, m_max_accel, m_max_decel);
+
+            // speed up if
+
             bool done = false;
             if ( x >= field_len) {
                 done = true;
             }
-            else {
-                // calculate new speed
-//                if (speed < m_pref_speed) {
-//                    ++speed;
-//                }
-            }
+//            else {
+//                // calculate new speed
+////                if (speed < m_pref_speed) {
+////                    ++speed;
+////                }
+//            }
 
             reply(atom("conquor"), m_id, speed, make_pair(x,y), done);
             aout << "[" << m_id << "] (" << pos.first << "/"

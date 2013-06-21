@@ -85,7 +85,7 @@ auto main (int argc, char** argv) -> int {
 
         vector<actor_ptr> running_actors;
         for (uint32_t i{0}; i < number_of_agents; ++i) {
-            running_actors.push_back(spawn<agent>(env, max_speed));
+            running_actors.push_back(spawn<agent>(env, max_speed, max_decel));
         }
 
         for (bool done{false}; !done;){

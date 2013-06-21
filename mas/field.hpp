@@ -92,6 +92,30 @@ class field {
         }
     }
 
+    void mark_available(std::pair<uint32_t,uint32_t> coord,
+                        uint32_t speed,
+                        uint32_t max_decel,
+                        uint32_t max_accel) {
+        auto col = coord.first + speed;
+        auto row = coord.second;
+        for (int i = 0; i < Rows; ++i) {
+            // this should find all available spaces and mark them with
+            // the possbilie speed for the next step
+        }
+    }
+
+    bool is_free(std::pair<uint32_t,uint32_t> coord, uint32_t distance) {
+        auto row = coord.second;
+        auto s = coord.first;
+        auto e = std::min(s + distance, Columns);
+        for (; s < e; ++s) {
+            if ((*this)(s, row).first != 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     uint32_t rows() {
         return Rows;
     }
